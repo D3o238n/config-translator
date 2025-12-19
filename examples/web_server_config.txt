@@ -45,13 +45,13 @@ upstream <- {
     fail_timeout = 10.0;
     max_fails = 3.0;
     backup_servers = [ 5.0; 6.0 ];
-    all_servers <- .(upstream_servers [ 5.0; 6.0 ] +).;
+    all_servers = .(upstream_servers [ 5.0; 6.0 ] +).;
 };
 
 :: Настройки кэширования
 cache_enabled <- 1.0;
-cache_size <- 1024.0;  # МБ
-cache_expire_time <- 3600.0;  # секунд
+cache_size <- 1024.0;
+cache_expire_time <- 3600.0;
 cache_levels <- [ 1.0; 2.0 ];
 
 cache_config <- {
@@ -111,7 +111,7 @@ security <- {
 };
 
 :: Настройки логирования
-log_level <- 2.0;  # info
+log_level <- 2.0;
 access_log <- 1.0;
 error_log <- 1.0;
 log_rotate_size <- 100.0;
@@ -187,6 +187,5 @@ server_config <- {
     
     :: Дополнительные параметры
     features = [ 1.0; 2.0; 3.0; 4.0; 5.0 ];
-    sorted_features <- .([ 5.0; 2.0; 3.0; 1.0; 4.0 ] sort()).;
-    max_feature <- .(sorted_features 4 get).;  # Последний элемент
+    sorted_features = .([ 5.0; 2.0; 3.0; 1.0; 4.0 ] sort()).;
 };

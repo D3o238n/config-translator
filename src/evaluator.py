@@ -2,11 +2,11 @@
 Вычислитель константных выражений для учебного конфигурационного языка.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, List 
 from src.lexer import Token, TokenType
 from src.parser import (
     ASTNode, NumberNode, NameNode, ArrayNode, DictNode, 
-    ConstExpressionNode, ParseError
+    ConstExpressionNode, ConstDeclarationNode
 )
 
 
@@ -36,9 +36,9 @@ class Evaluator:
             if token.type == TokenType.NUMBER:
                 self.stack.append(token.value)
                 
-            elif token.type == TokenType.NAME:
-                # Это может быть константа или функция
-                if token.value == 'sort':
+            elif token.type == TokenType.NAME or token.type == TokenType.SORT:
+                # Обрабатываем как имя или функцию sort
+                if token.type == TokenType.SORT or (token.type == TokenType.NAME and token.value == 'sort'):
                     # Функция sort()
                     if not self.stack:
                         raise EvaluationError("Недостаточно операндов для sort()", token)
@@ -59,10 +59,8 @@ class Evaluator:
                 b = self.stack.pop()
                 a = self.stack.pop()
                 
-                # Числа
                 if isinstance(a, (int, float)) and isinstance(b, (int, float)):
                     self.stack.append(a + b)
-                # Массивы
                 elif isinstance(a, list) and isinstance(b, list):
                     self.stack.append(a + b)
                 else:
@@ -74,12 +72,14 @@ class Evaluator:
                 b = self.stack.pop()
                 a = self.stack.pop()
                 
-                # Только числа
                 if isinstance(a, (int, float)) and isinstance(b, (int, float)):
                     self.stack.append(a - b)
                 else:
                     raise EvaluationError(f"Несовместимые типы для -: {type(a)} и {type(b)}", token)
                     
+            elif token.type in [TokenType.LPAREN, TokenType.RPAREN]:
+                # Игнорируем скобки - они уже обработаны парсером
+                continue
             else:
                 raise EvaluationError(f"Неожиданный токен в выражении: {token.type.name}", token)
                 

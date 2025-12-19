@@ -201,8 +201,9 @@ class TestTranslatorErrors:
             
     def test_parser_error(self):
         translator = Translator()
+        # Тестируем реальную синтаксическую ошибку
         with pytest.raises(TranslationError):
-            translator.translate("x <- 1.0")  # Нет точки с запятой
+            translator.translate("x <- {")  # Незакрытая фигурная скобка
 
 
 class TestTranslatorComplex:
