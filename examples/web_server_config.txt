@@ -1,0 +1,192 @@
+:: ===================================================
+:: Конфигурация веб-сервера для высоконагруженного API
+:: Предметная область: DevOps и веб-разработка
+:: ===================================================
+
+<#
+Настройки для production веб-сервера:
+- HTTP/HTTPS конфигурация
+- Балансировка нагрузки
+- Кэширование и сжатие
+- Безопасность
+#>
+
+:: Порт сервера
+http_port <- 80.0;
+https_port <- 443.0;
+api_port <- 8080.0;
+all_ports <- [ http_port; https_port; api_port ];
+
+:: Максимальное количество соединений
+max_connections <- 10000.0;
+max_workers <- 8.0;
+
+:: Таймауты (в секундах)
+keepalive_timeout <- 65.0;
+client_body_timeout <- 30.0;
+send_timeout <- 30.0;
+request_timeout <- 60.0;
+total_timeout <- .(keepalive_timeout client_body_timeout send_timeout request_timeout + + +).;
+
+:: Настройки HTTPS/SSL
+ssl_certificate_path <- 1.0;
+ssl_key_path <- 2.0;
+ssl_protocols <- [ 1.0; 2.0; 3.0 ];
+ssl_ciphers <- [ 1.0; 2.0; 3.0; 4.0; 5.0 ];
+sorted_ciphers <- .(ssl_ciphers sort()).;
+
+:: Конфигурация балансировки нагрузки
+upstream_servers <- [ 1.0; 2.0; 3.0; 4.0 ];
+load_balancing_algorithm <- 2.0;
+
+upstream <- {
+    servers = upstream_servers;
+    algorithm = load_balancing_algorithm;
+    fail_timeout = 10.0;
+    max_fails = 3.0;
+    backup_servers = [ 5.0; 6.0 ];
+    all_servers <- .(upstream_servers [ 5.0; 6.0 ] +).;
+};
+
+:: Настройки кэширования
+cache_enabled <- 1.0;
+cache_size <- 1024.0;  # МБ
+cache_expire_time <- 3600.0;  # секунд
+cache_levels <- [ 1.0; 2.0 ];
+
+cache_config <- {
+    enabled = cache_enabled;
+    size = cache_size;
+    expire_time = cache_expire_time;
+    levels = cache_levels;
+    keys_zone = 100.0;
+    inactive = 600.0
+};
+
+:: Настройки сжатия
+gzip_enabled <- 1.0;
+gzip_min_length <- 256.0;
+gzip_comp_level <- 6.0;
+gzip_types <- [ 1.0; 2.0; 3.0; 4.0 ];
+
+compression <- {
+    enabled = gzip_enabled;
+    min_length = gzip_min_length;
+    level = gzip_comp_level;
+    types = gzip_types;
+    buffers = 32.0
+};
+
+:: Rate limiting
+rate_limit_requests <- 100.0;
+rate_limit_burst <- 50.0;
+rate_limit_delay <- 10.0;
+
+ratelimit <- {
+    enabled = 1.0;
+    requests_per_second = rate_limit_requests;
+    burst = rate_limit_burst;
+    delay = rate_limit_delay;
+    zones = [ 10.0; 20.0; 30.0 ]
+};
+
+:: Настройки безопасности
+security_headers <- {
+    x_frame_options = 1.0;
+    x_content_type_options = 1.0;
+    x_xss_protection = 1.0;
+    strict_transport_security = 1.0;
+    content_security_policy = 1.0
+};
+
+allowed_methods <- [ 1.0; 2.0; 3.0 ];
+blocked_ips <- [ 1.0; 2.0; 3.0 ];
+
+security <- {
+    headers = security_headers;
+    methods = allowed_methods;
+    blocked_ips = blocked_ips;
+    request_size_limit = 10.0;
+    disable_server_tokens = 1.0
+};
+
+:: Настройки логирования
+log_level <- 2.0;  # info
+access_log <- 1.0;
+error_log <- 1.0;
+log_rotate_size <- 100.0;
+log_retention <- 30.0;
+
+logging <- {
+    level = log_level;
+    access = access_log;
+    error = error_log;
+    rotate_size = log_rotate_size;
+    retention_days = log_retention;
+    formats = [ 1.0; 2.0; 3.0 ];
+    sorted_formats <- .([ 3.0; 1.0; 2.0 ] sort()).;
+};
+
+:: Настройки мониторинга
+metrics_port <- 9091.0;
+health_check_interval <- 5.0;
+alert_thresholds <- {
+    cpu = 80.0;
+    memory = 85.0;
+    disk = 90.0;
+    requests = 95.0;
+    response_time = 500.0
+};
+
+monitoring <- {
+    enabled = 1.0;
+    port = metrics_port;
+    interval = health_check_interval;
+    thresholds = alert_thresholds;
+    exporters = [ 1.0; 2.0; 3.0 ]
+};
+
+:: Итоговая конфигурация сервера
+server_config <- {
+    name = 100.0;
+    version = 1.1;
+    
+    ports = {
+        http = http_port;
+        https = https_port;
+        api = api_port;
+        all = all_ports
+    };
+    
+    limits = {
+        connections = max_connections;
+        workers = max_workers;
+        timeouts = {
+            keepalive = keepalive_timeout;
+            client_body = client_body_timeout;
+            send = send_timeout;
+            request = request_timeout;
+            total = total_timeout
+        }
+    };
+    
+    ssl = {
+        certificate = ssl_certificate_path;
+        key = ssl_key_path;
+        protocols = ssl_protocols;
+        ciphers = sorted_ciphers
+    };
+    
+    load_balancing = upstream;
+    caching = cache_config;
+    compression = compression;
+    rate_limiting = ratelimit;
+    security = security;
+    logging = logging;
+    monitoring = monitoring;
+    
+    :: Дополнительные параметры
+    features = [ 1.0; 2.0; 3.0; 4.0; 5.0 ];
+    sorted_features <- .([ 5.0; 2.0; 3.0; 1.0; 4.0 ] sort()).;
+    max_feature <- .(sorted_features 4 get).;  # Последний элемент
+};
