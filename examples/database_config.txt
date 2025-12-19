@@ -1,0 +1,104 @@
+:: ===================================================
+:: Конфигурация базы данных для веб-приложения
+:: Предметная область: управление базами данных
+:: ===================================================
+
+<# 
+Основные параметры подключения к БД
+#>
+
+:: Хосты и порты
+primary_host <- 127.0;
+primary_port <- 5432.0;
+replica_host <- 128.0;
+replica_port <- 5433.0;
+
+:: Настройки пула соединений
+min_connections <- 10.0;
+max_connections <- 100.0;
+total_connections <- .(min_connections max_connections +).;
+
+:: Таймауты (в секундах)
+connection_timeout <- 30.0;
+query_timeout <- 60.0;
+idle_timeout <- 300.0;
+all_timeouts <- [ connection_timeout; query_timeout; idle_timeout ];
+
+:: Конфигурация основной БД
+primary_database <- {
+    host = primary_host;
+    port = primary_port;
+    name = 101.0;
+    ssl_enabled = 1.0;
+    connection_pool = {
+        min = min_connections;
+        max = max_connections;
+        total = total_connections
+    };
+    timeouts = all_timeouts
+};
+
+:: Конфигурация реплики для чтения
+replica_database <- {
+    host = replica_host;
+    port = replica_port;
+    name = 102.0;
+    ssl_enabled = 1.0;
+    read_only = 1.0
+};
+
+:: Настройки резервного копирования
+backup_hours <- [ 2.0; 14.0; 22.0 ];
+sorted_backup_hours <- .(backup_hours sort()).;
+
+backup_config <- {
+    enabled = 1.0;
+    schedule_hours = sorted_backup_hours;
+    retention_days = 30.0;
+    compression = 1.0
+};
+
+:: Настройки кэширования
+cache_ttl <- 3600.0;
+cache_max_size <- 1024.0;
+
+redis_config <- {
+    host = 129.0;
+    port = 6379.0;
+    ttl = cache_ttl;
+    max_memory = cache_max_size;
+    eviction_policy = 1.0
+};
+
+:: Настройки мониторинга
+monitoring <- {
+    enabled = 1.0;
+    metrics_port = 9090.0;
+    health_check_interval = 10.0;
+    alert_thresholds = {
+        cpu = 80.0;
+        memory = 85.0;
+        disk = 90.0;
+        connections = 95.0
+    }
+};
+
+:: Список всех баз данных
+database_list <- [ 101.0; 102.0; 103.0; 104.0 ];
+
+:: Приоритеты баз данных (от высокого к низкому)
+priority_values <- [ 10.0; 5.0; 3.0; 1.0 ];
+sorted_priorities <- .(priority_values sort()).;
+
+:: Итоговая конфигурация кластера
+cluster_config <- {
+    name = 200.0;
+    version = 14.2;
+    primary = primary_database;
+    replica = replica_database;
+    backup = backup_config;
+    cache = redis_config;
+    monitoring = monitoring;
+    databases = database_list;
+    priorities = sorted_priorities
+};
